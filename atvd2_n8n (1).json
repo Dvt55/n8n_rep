@@ -1,0 +1,256 @@
+{
+  "name": "atvd2_n8n",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{$json.busca}}",
+        "options": {
+          "systemMessage": "=Você é um sistema que busca produtos relacionados com uma busca do usuário.\n\nO usuário buscou: \"{{ $node[\"Webhook\"].json['body'] }}\"\n\nAqui está uma lista JSON com todos os produtos disponíveis, cada um com código e descrição:\n{{ $json.produtos }}\n\nSua tarefa é:\n1. Filtrar APENAS os produtos exatamente existentes na lista.\n2. Procurar quais produtos da lista mais se relacionam com a busca do usuário, utilize a descrição de cada produto na lista como critério de busca.\n3. Responder SOMENTE com uma lista JSON, contendo apenas os produtos encontrados que são relevantes para o texto do usuário.\n4. NÃO CRIE OU INVENTE PRODUTOS. Se não houver nenhum produto correspondente, retorne uma lista vazia (`[]`).\n\nExemplo de saída esperada:\n{\n  [\n    {\n      \"descricao\": \"Moletom Cinza Básico\",\n      \"codigo\": \"MTL-002\"\n    }\n  ]\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.1,
+      "position": [
+        -96,
+        -16
+      ],
+      "id": "0f96293c-86f8-4d8b-a926-32a3306acc75",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        192
+      ],
+      "id": "a93b43aa-885e-4c59-8866-b9329455ade3",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "BWKXp5WjI67VKMF0",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        208,
+        176
+      ],
+      "id": "a53c111a-a2a1-4783-a839-f504ea662a01",
+      "name": "Calculator"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "atvd2",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -928,
+        -16
+      ],
+      "id": "4ae421a1-7450-4afa-8acb-cfc1d6b6ced5",
+      "name": "Webhook",
+      "webhookId": "08fd59b5-9c48-4e62-8a95-d4c822bfb923"
+    },
+    {
+      "parameters": {
+        "url": "https://cdn-demander.s3.sa-east-1.amazonaws.com/processo-seletivo/exemplo-de-produtos.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -736,
+        -16
+      ],
+      "id": "c680dcce-6d3d-403c-a0d2-624a58cf4e99",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b52f6277-fecb-4791-91c4-976dd4e697a6",
+              "name": "busca",
+              "value": "={{ $node[\"Webhook\"].json.body }}",
+              "type": "string"
+            },
+            {
+              "id": "c0b2dbf7-ffb7-4fc2-8629-028c91ffc651",
+              "name": "produtos",
+              "value": "={{ JSON.stringify($json.produtos) }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -288,
+        -16
+      ],
+      "id": "4bfa1042-8f40-42cc-898f-c7dfa056a144",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const produtos = items.map(item => {\n    return {\n      descricao: item.json.descricao,\n      codigo: item.json.codigo\n    };\n  })\n  .slice(0, 200);\n\nreturn [{\n  json: {\n    produtos: produtos\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        -16
+      ],
+      "id": "8d02cd03-9f31-4475-a62a-05b218c2137f",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"Produtos Encontrados\": {{$json[\"output\"]}}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        336,
+        -16
+      ],
+      "id": "7d60b1a2-39f9-450c-974b-b1d765580fe7",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Edit Fields').item.json.produtos }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -96,
+        192
+      ],
+      "id": "7e88d4ad-1567-4c7b-a20f-900949908be0",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1f5663f0-aaf6-4036-87a5-8ae2c78fd24b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e20877c782cfb90b0344055f555101f6434e9058105fd654801e77a6a3d7efd7"
+  },
+  "id": "yZ4fJeSMFPMfHSTe",
+  "tags": []
+}

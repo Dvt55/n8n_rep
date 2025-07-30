@@ -1,0 +1,10 @@
+
+Olá, Gostaria de explicar por que não incluí a aplicação em um container Docker, conforme solicitado na atividade.
+
+Tentei de várias formas instalar e configurar o Docker na minha máquina, mas infelizmente enfrentei uma série de problemas relacionados ao meu sistema operacional. Meu Windows está com falhas no sistema de atualização, possivelmente corrompido, e, por mais que eu tenha tentado corrigir isso, não consegui resolver a tempo.
+
+Como o Docker exige uma versão mais recente do WSL (Windows Subsystem for Linux), e a atualização do meu Windows está travada, fui impedido de usar o Docker corretamente. Realizei diversos testes, pesquisas e tentei instalar o Docker por diferentes caminhos, mas infelizmente todos esbarraram nesse mesmo obstáculo.
+
+Apesar dessas dificuldades técnicas, me dediquei ao máximo para cumprir todos os outros requisitos da atividade com qualidade. Tenho plena consciência da importância de usar Docker e, caso fosse possível no meu ambiente, certamente teria incluído.
+
+Agradeço pela compreensão e estou totalmente disponível para esclarecer qualquer dúvida.
